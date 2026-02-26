@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>英雄联盟 · 技能查询</title>
+  <!-- 使用 Inter 字体，干净现代 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    /* ----- 全局重置，深色英雄联盟风格 ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0e14;
+      color: #e6e9f0;
+      line-height: 1.5;
+    }
+
+    /* CSS 变量定义 - 深色主题（默认） */
+    :root {
+      /* 金属质感变量 */
+      --metal-primary: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+      --metal-secondary: linear-gradient(135deg, #2a2a2a 0%, #3d3d3d 50%, #2a2a2a 100%);
+      --metal-accent: linear-gradient(135deg, #3a3a3a 0%, #4d4d4d 50%, #3a3a3a 100%);
+      --metal-highlight: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #b8860b 100%);
+      --metal-shadow: rgba(0, 0, 0, 0.4);
+      --metal-highlight-color: rgba(255, 255, 255, 0.3);
+      --metal-shadow-color: rgba(0, 0, 0, 0.3);
+      
+      /* 文字颜色 */
+      --text-primary: #e6e9f0;
+      --text-secondary: #a6b1c6;
+      --text-accent: #c4d9ff;
+      
+      /* 背景颜色 */
+      --bg-primary: #0a0e14;
+      --bg-secondary: #12171f;
+      --bg-panel: #0e1219;
+      --blurb-bg: #1a212b;
+    }
+
+    /* 浅色主题变量 */
+    .theme-light {
+      --metal-primary: linear-gradient(135deg, #e6e6e6 0%, #f5f5f5 50%, #e6e6e6 100%);
+      --metal-secondary: linear-gradient(135deg, #d4d4d4 0%, #e8e8e8 50%, #d4d4d4 100%);
+      --metal-accent: linear-gradient(135deg, #c0c0c0 0%, #dcdcdc 50%, #c0c0c0 100%);
+      --metal-highlight: linear-gradient(135deg, #808080 0%, #a9a9a9 50%, #808080 100%);
+      --metal-shadow: rgba(0, 0, 0, 0.2);
+      --metal-highlight-color: rgba(255, 255, 255, 0.6);
+      --metal-shadow-color: rgba(0, 0, 0, 0.1);
+      
+      --text-primary: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --text-accent: #2a2a2a;
+      
+      --bg-primary: #f0f0f0;
+      --bg-secondary: #e0e0e0;
+      --bg-panel: #d0d0d0;
+      --blurb-bg: #e0e0e0;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 24px;
+    }
+
+    /* ----- 头部：标题 + 搜索 ----- */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c4d9ff, #a0b9e6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .search-box {
+      background: #1e232c;
+      border-radius: 40px;
+      padding: 6px 20px;
+      display: flex;
+      align-items: center;
+      border: 1px solid #3a4050;
+      transition: 0.2s;
+    }
+
+    .search-box:focus-within {
+      border-color: #6a9eff;
+      box-shadow: 0 0 0 2px rgba(106, 158, 255, 0.2);
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      padding: 12px 0;
+      font-size: 1rem;
+      color: white;
+      width: 240px;
+      outline: none;
+    }
+
+    .search-box input::placeholder {
+      color: #8a92a6;
+      font-weight: 400;
+    }
+
+    .search-box span {
+      color: #8a92a6;
+      margin-left: 8px;
+      font-size: 1.1rem;
+    }
+
+    /* ----- 筛选按钮区域 ----- */
+    .filter-section {
+      background: var(--metal-secondary);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--metal-shadow-color);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 12px var(--metal-shadow);
+    }
+
+    .filter-group {
+      margin-bottom: 16px;
+    }
+
+    .filter-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: var(--metal-accent);
+      color: var(--text-secondary);
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .filter-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.05) 2px,
+        rgba(255, 255, 255, 0.05) 4px
+      );
+    }
+
+    .filter-btn:hover {
+      background: var(--metal-highlight);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 6px 16px var(--metal-shadow);
+    }
+
+    .filter-btn.active {
+      background: var(--metal-highlight);
+      color: var(--text-primary);
+      box-shadow: 
+        inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 2px 8px var(--metal-shadow);
+      transform: translateY(-1px);
+    }
+
+    /* ----- 双栏主布局（响应式）----- */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+      background: #12171f;
+      border-radius: 32px;
+      padding: 24px;
+      border: 1px solid #2a313c;
+      /* 删除 align-items: center; 恢复默认顶部对齐 */
+    }
+
+    @media (max-width: 850px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ----- 左侧：英雄网格（可滚动）----- */
+    .champion-panel {
+      background: var(--metal-secondary);
+      border-radius: 24px;
+      padding: 20px 16px;
+      border: 1px solid var(--metal-shadow-color);
+      height: fit-content;
+      max-height: 700px;
+      overflow-y: auto;
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 16px var(--metal-shadow);
+    }
+
+    .champion-panel h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .champion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 14px;
+    }
+
+    .champion-card {
+      background: var(--metal-primary);
+      border-radius: 16px;
+      padding: 16px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 12px var(--metal-shadow);
+    }
+
+    .champion-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+      );
+      border-radius: 16px;
+    }
+
+    .champion-card:hover {
+      background: var(--metal-accent);
+      border-color: var(--metal-highlight-color);
+      transform: translateY(-2px);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 8px 20px var(--metal-shadow);
+    }
+
+    .champion-card.active {
+      background: var(--metal-highlight);
+      border-color: var(--metal-highlight-color);
+      box-shadow: 
+        inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 6px 18px var(--metal-shadow);
+      transform: translateY(-2px);
+    }
+
+    .champion-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      border: 2px solid #38475a;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .champion-card:hover img {
+      transform: scale(1.1);
+    }
+
+    .champion-card span {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    /* 英雄标签样式 - 金属质感 */
+    .champion-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    /* 分路标签金属质感 */
+    .position-tag {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 上路 - 红铜色金属 */
+    .position-tag:nth-child(1) {
+      background: linear-gradient(135deg, 
+        #b87333 0%, 
+        #cd7f32 25%, 
+        #e6b87c 50%, 
+        #cd7f32 75%, 
+        #b87333 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 打野 - 青铜绿色金属 */
+    .position-tag:nth-child(2) {
+      background: linear-gradient(135deg, 
+        #8b7355 0%, 
+        #a0855b 25%, 
+        #c1b28e 50%, 
+        #a0855b 75%, 
+        #8b7355 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 中路 - 银蓝色金属 */
+    .position-tag:nth-child(3) {
+      background: linear-gradient(135deg, 
+        #6c7a89 0%, 
+        #8ca6c2 25%, 
+        #b0c4de 50%, 
+        #8ca6c2 75%, 
+        #6c7a89 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 下路 - 金色金属 */
+    .position-tag:nth-child(4) {
+      background: linear-gradient(135deg, 
+        #d4af37 0%, 
+        #ffd700 25%, 
+        #ffffcc 50%, 
+        #ffd700 75%, 
+        #d4af37 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 辅助 - 紫银色金属 */
+    .position-tag:nth-child(5) {
+      background: linear-gradient(135deg, 
+        #8a7fac 0%, 
+        #b19cd9 25%, 
+        #d8bfd8 50%, 
+        #b19cd9 75%, 
+        #8a7fac 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 定位标签金属质感 */
+    .class-tag {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 战士 - 深红色金属 */
+    .class-tag:nth-child(1) {
+      background: linear-gradient(135deg, 
+        #8b0000 0%, 
+        #b22222 25%, 
+        #dc143c 50%, 
+        #b22222 75%, 
+        #8b0000 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 刺客 - 暗灰色金属 */
+    .class-tag:nth-child(2) {
+      background: linear-gradient(135deg, 
+        #2f2f2f 0%, 
+        #4a4a4a 25%, 
+        #696969 50%, 
+        #4a4a4a 75%, 
+        #2f2f2f 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 法师 - 蓝紫色金属 */
+    .class-tag:nth-child(3) {
+      background: linear-gradient(135deg, 
+        #4b0082 0%, 
+        #6a5acd 25%, 
+        #9370db 50%, 
+        #6a5acd 75%, 
+        #4b0082 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 坦克 - 古铜色金属 */
+    .class-tag:nth-child(4) {
+      background: linear-gradient(135deg, 
+        #8b5a2b 0%, 
+        #a0522d 25%, 
+        #cd853f 50%, 
+        #a0522d 75%, 
+        #8b5a2b 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 射手 - 翠绿色金属 */
+    .class-tag:nth-child(5) {
+      background: linear-gradient(135deg, 
+        #006400 0%, 
+        #228b22 25%, 
+        #32cd32 50%, 
+        #228b22 75%, 
+        #006400 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 辅助 - 柔和紫色金属 */
+    .class-tag:nth-child(6) {
+      background: linear-gradient(135deg, 
+        #663399 0%, 
+        #8a2be2 25%, 
+        #ba55d3 50%, 
+        #8a2be2 75%, 
+        #663399 100%
+      );
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 无搜索结果提示 */
+    .no-result {
+      grid-column: 1 / -1;
+      padding: 40px 20px;
+      text-align: center;
+      color: #99a2b5;
+      font-style: italic;
+    }
+
+    /* ----- 右侧：英雄详情 ----- */
+    .detail-panel {
+      background: var(--metal-secondary);
+      border-radius: 24px;
+      padding: 20px;
+      border: 1px solid var(--metal-shadow-color);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 16px var(--metal-shadow);
+    }
+
+    /* 文字内容容器 - 充分利用面板宽度 */
+    .detail-content {
+      width: 100%;
+      max-width: 900px; /* 增大最大宽度以利用更多空间 */
+    }
+
+    .champion-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #2e3848;
+      padding-bottom: 20px;
+    }
+
+    .champion-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--metal-shadow-color);
+      padding-bottom: 20px;
+    }
+
+    .champion-header h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .champion-title {
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      background: rgba(106, 158, 255, 0.1);
+      padding: 4px 14px;
+      border-radius: 40px;
+    }
+
+    .blurb {
+      background: var(--blurb-bg);
+      padding: 20px 24px;
+      border-radius: 20px;
+      margin-bottom: 32px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      line-height: 1.6;
+      border-left: 5px solid var(--metal-highlight);
+      text-align: center; /* 英雄介绍文字水平居中 */
+    }
+
+    .skills-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+    }
+
+    .skills-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .skill-item {
+      display: flex;
+      gap: 18px;
+      background: var(--metal-primary);
+      padding: 18px 22px;
+      border-radius: 18px;
+      border: 1px solid var(--metal-shadow-color);
+      transition: 0.1s;
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 2px 8px var(--metal-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+      );
+      border-radius: 18px;
+    }
+
+    .skill-item:hover {
+      background: var(--metal-accent);
+      border-color: var(--metal-highlight-color);
+      transform: translateY(-1px);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 12px var(--metal-shadow);
+    }
+
+    /* 创建一个容器来垂直排列key和icon */
+    .skill-key-icon-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* 图标和快捷键居中 */
+      gap: 12px;
+    }
+
+    .skill-item img {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .skill-item:hover img {
+      transform: scale(1.2);
+    }
+
+    .skill-key {
+      width: 52px;
+      height: 52px;
+      background: var(--metal-primary);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: var(--text-primary);
+      flex-shrink: 0;
+      border-bottom: 3px solid var(--metal-highlight);
+    }
+
+    .skill-info {
+      flex: 1;
+      text-align: center; /* 技能信息容器居中 */
+    }
+
+    .skill-info h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+      text-align: center; /* 技能名称水平居中 */
+    }
+
+    .skill-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      text-align: center; /* 技能描述水平居中 */
+    }
+
+    /* 主题切换按钮 */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--metal-accent);
+      border: 2px solid var(--metal-shadow-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 2px 8px var(--metal-shadow);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 
+        inset 1px 1px 0 var(--metal-highlight-color),
+        inset -1px -1px 0 var(--metal-shadow-color),
+        0 4px 12px var(--metal-shadow);
+    }
+
+    /* 响应式微调 */
+    @media (max-width: 600px) {
+      .app { padding: 12px; }
+      .header { flex-direction: column; align-items: stretch; }
+      .search-box input { width: 100%; }
+      .champion-header h2 { font-size: 1.8rem; }
+      .filter-buttons { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 主题切换按钮 -->
+  <button class="theme-toggle" id="themeToggle">🌙</button>
+  
+  <div class="app">
+    <!-- 头部区域 -->
+    <div class="header">
+      <div class="logo">
+        <h1>⚔️ 符文之地·英雄馆</h1>
+      </div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索英雄（如 Ahri, 亚索...）" autocomplete="off">
+        <span>🔍</span>
+      </div>
+    </div>
+
+    <!-- 筛选按钮区域 -->
+    <div class="filter-section">
+      <!-- 分路筛选 -->
+      <div class="filter-group">
+        <div class="filter-title">📍 分路筛选</div>
+        <div class="filter-buttons" id="positionFilters">
+          <button class="filter-btn active" data-position="ALL">全部</button>
+          <button class="filter-btn" data-position="TOP">上路</button>
+          <button class="filter-btn" data-position="JUNGLE">打野</button>
+          <button class="filter-btn" data-position="MIDDLE">中路</button>
+          <button class="filter-btn" data-position="BOTTOM">下路</button>
+          <button class="filter-btn" data-position="UTILITY">辅助</button>
+        </div>
+      </div>
+      
+      <!-- 定位筛选 -->
+      <div class="filter-group">
+        <div class="filter-title">🎯 定位筛选</div>
+        <div class="filter-buttons" id="classFilters">
+          <button class="filter-btn active" data-class="ALL">全部</button>
+          <button class="filter-btn" data-class="战士">战士</button>
+          <button class="filter-btn" data-class="刺客">刺客</button>
+          <button class="filter-btn" data-class="法师">法师</button>
+          <button class="filter-btn" data-class="坦克">坦克</button>
+          <button class="filter-btn" data-class="射手">射手</button>
+          <button class="filter-btn" data-class="辅助">辅助</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主内容：英雄网格 + 详情 -->
+    <div class="main-grid">
+      <!-- 左侧英雄网格 -->
+      <div class="champion-panel">
+        <h2>📋 英雄名录</h2>
+        <div id="championGrid" class="champion-grid">
+          <!-- JS 动态渲染 -->
+        </div>
+      </div>
+
+      <!-- 右侧详情面板 -->
+      <div class="detail-panel" id="detailPanel">
+        <!-- JS 动态渲染 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------------------------
+    // 1. 英雄数据池（使用扩展后的数据）
+    // ----------------------------------------------
+    let championsData = [];          
+    let currentChampionId = null;    
+    let currentPositionFilter = 'ALL';  // 当前分路筛选
+    let currentClassFilter = 'ALL';     // 当前定位筛选
+
+    // 加载扩展后的 JSON 文件
+    fetch('champions.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('网络响应错误：' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 验证数据完整性
+        if (!data || data.length === 0) {
+          throw new Error('英雄数据为空');
+        }
+        championsData = data;
+        currentChampionId = championsData[0].id;
+        renderChampionGrid();
+        renderChampionDetails(currentChampionId);
+      })
+      .catch(error => {
+        console.error('加载英雄数据失败：', error);
+        // 显示用户友好的错误信息
+        document.body.innerHTML = `
+          <div class="app">
+            <h1 style="color: #e74c3c; text-align: center; margin-top: 50px;">⚠️ 数据加载失败</h1>
+            <p style="color: #95a5a6; text-align: center;">${error.message}</p>
+            <p style="color: #95a5a6; text-align: center;">请检查 champions.json 文件是否存在且格式正确</p>
+          </div>
+        `;
+      });
+
+    // ----------------------------------------------
+    // 2. DOM 元素引用
+    // ----------------------------------------------
+    const gridContainer = document.getElementById('championGrid');
+    const detailPanel = document.getElementById('detailPanel');
+    const searchInput = document.getElementById('searchInput');
+
+    // ----------------------------------------------
+    // 3. 筛选按钮事件绑定
+    // ----------------------------------------------
+    // 分路筛选按钮
+    document.querySelectorAll('#positionFilters .filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // 移除同组其他按钮的active类
+        document.querySelectorAll('#positionFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        // 给当前按钮添加active类
+        this.classList.add('active');
+        // 更新筛选条件
+        currentPositionFilter = this.dataset.position;
+        // 重新渲染
+        renderChampionGrid(searchInput.value);
+        
+        // 自动选中第一个可见英雄
+        selectFirstVisibleChampion();
+      });
+    });
+
+    // 定位筛选按钮
+    document.querySelectorAll('#classFilters .filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // 移除同组其他按钮的active类
+        document.querySelectorAll('#classFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        // 给当前按钮添加active类
+        this.classList.add('active');
+        // 更新筛选条件
+        currentClassFilter = this.dataset.class;
+        // 重新渲染
+        renderChampionGrid(searchInput.value);
+        
+        // 自动选中第一个可见英雄
+        selectFirstVisibleChampion();
+      });
+    });
+
+    // ----------------------------------------------
+    // 4. 筛选函数
+    // ----------------------------------------------
+    function filterChampions(champions, searchText = '', positionFilter = 'ALL', classFilter = 'ALL') {
+      const lowerSearchText = searchText.toLowerCase().trim();
+      
+      return champions.filter(champion => {
+        // 文本搜索过滤 - 增加对中文名字(title)的支持
+        const matchesSearch = lowerSearchText === '' || 
+          champion.name.toLowerCase().includes(lowerSearchText) || 
+          champion.id.toLowerCase().includes(lowerSearchText) ||
+          champion.title.toLowerCase().includes(lowerSearchText);
+        
+        if (!matchesSearch) return false;
+
+        // 分路筛选
+        const matchesPosition = positionFilter === 'ALL' || 
+          champion.positions.includes(positionFilter);
+        
+        if (!matchesPosition) return false;
+
+        // 定位筛选
+        const matchesClass = classFilter === 'ALL' || 
+          champion.classes.includes(classFilter);
+        
+        return matchesClass;
+      });
+    }
+
+    // ----------------------------------------------
+    // 5. 渲染左侧英雄网格（支持多重过滤）
+    // ----------------------------------------------
+    function renderChampionGrid(filterText = '') {
+      // 应用所有筛选条件
+      const filtered = filterChampions(
+        championsData, 
+        filterText, 
+        currentPositionFilter, 
+        currentClassFilter
+      );
+
+      let html = '';
+      if (filtered.length === 0) {
+        html = `<div class="no-result">❄️ 没有找到匹配的英雄</div>`;
+      } else {
+        filtered.forEach(champ => {
+          const activeClass = champ.id === currentChampionId ? 'active' : '';
+          
+          // 生成分路标签（简化的中文缩写）
+          const positionLabels = champ.positions.map(pos => {
+            const posMap = {
+              'TOP': '上',
+              'JUNGLE': '野',
+              'MIDDLE': '中',
+              'BOTTOM': '下',
+              'UTILITY': '辅'
+            };
+            return `<span class="position-tag">${posMap[pos]}</span>`;
+          }).join('');
+          
+          // 生成定位标签
+          const classLabels = champ.classes.map(cls => {
+            return `<span class="class-tag">${cls}</span>`;
+          }).join('');
+
+          html += `
+            <div class="champion-card ${activeClass}" data-id="${champ.id}">
+              <img src="${champ.icon}" alt="${champ.name}" loading="lazy">
+              <span>${champ.name}</span>
+              <div class="champion-tags">
+                ${positionLabels}
+                ${classLabels}
+              </div>
+            </div>
+          `;
+        });
+      }
+      gridContainer.innerHTML = html;
+
+      // 重新绑定点击事件
+      document.querySelectorAll('.champion-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+          const id = this.dataset.id;
+          if (id) {
+            setActiveChampion(id);
+          }
+        });
+      });
+    }
+
+    // ----------------------------------------------
+    // 6. 渲染右侧详情
+    // ----------------------------------------------
+    function renderChampionDetails(championId) {
+      const champion = championsData.find(c => c.id === championId);
+      if (!champion) return;
+
+      currentChampionId = champion.id;
+
+      // 构建技能HTML
+      let skillsHtml = '';
+      champion.skills.forEach(skill => {
+        skillsHtml += `
+          <div class="skill-item">
+            <div class="skill-key-icon-container">
+              <div class="skill-key">${skill.key}</div>
+              <img src="${skill.icon}" alt="${skill.name}" />
+            </div>
+            <div class="skill-info">
+              <h4>${skill.name}</h4>
+              <div class="skill-desc">${skill.description}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      const html = `
+        <div class="detail-content">
+          <div class="champion-header">
+            <h2>${champion.name}</h2>
+            <span class="champion-title">${champion.title}</span>
+          </div>
+          <div class="blurb">
+            ${champion.blurb}
+          </div>
+          <div class="skills-title">
+            ⚡ 技能列表
+          </div>
+          <div class="skills-list">
+            ${skillsHtml}
+          </div>
+        </div>
+      `;
+
+      detailPanel.innerHTML = html;
+    }
+
+    // ----------------------------------------------
+    // 7. 切换选中英雄
+    // ----------------------------------------------
+    function setActiveChampion(championId) {
+      currentChampionId = championId;
+      renderChampionGrid(searchInput.value);
+      renderChampionDetails(championId);
+    }
+
+    // ----------------------------------------------
+    // 8. 选择第一个可见英雄
+    // ----------------------------------------------
+    function selectFirstVisibleChampion() {
+      const visibleCards = Array.from(document.querySelectorAll('.champion-card'));
+      if (visibleCards.length > 0) {
+        const firstId = visibleCards[0].dataset.id;
+        setActiveChampion(firstId);
+      }
+    }
+
+    // ----------------------------------------------
+    // 10. 主题切换功能
+    // ----------------------------------------------
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    // 检查本地存储的主题设置
+    const savedTheme = localStorage.getItem('lol-theme') || 'theme-dark';
+    body.className = savedTheme;
+    themeToggle.textContent = savedTheme === 'theme-dark' ? '☀️' : '🌙';
+    
+    themeToggle.addEventListener('click', function() {
+      if (body.classList.contains('theme-dark')) {
+        body.classList.remove('theme-dark');
+        body.classList.add('theme-light');
+        this.textContent = '🌙';
+        localStorage.setItem('lol-theme', 'theme-light');
+      } else {
+        body.classList.remove('theme-light');
+        body.classList.add('theme-dark');
+        this.textContent = '☀️';
+        localStorage.setItem('lol-theme', 'theme-dark');
+      }
+    });
+
+    // ----------------------------------------------
+    // 9. 搜索防抖 & 监听
+    // ----------------------------------------------
+    let debounceTimer;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        renderChampionGrid(this.value);
+        
+        // 获取当前所有可见卡片
+        const visibleCards = Array.from(document.querySelectorAll('.champion-card'));
+        if (visibleCards.length > 0) {
+          // 如果当前选中的英雄不在可见卡片中，则自动选中第一个
+          const activeExists = visibleCards.some(card => card.dataset.id === currentChampionId);
+          if (!activeExists) {
+            const firstId = visibleCards[0].dataset.id;
+            setActiveChampion(firstId);
+          }
+        }
+      }, 200); // 200ms 防抖
+    });
+  </script>
+</body>
+</html>
